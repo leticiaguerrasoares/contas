@@ -1,0 +1,221 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+enum RecurrenceType {
+  NONE
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum OccurrenceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  IN_APP
+}
+
+enum NotificationType {
+  DUE_DATE_REMINDER
+  WEEKLY_SUMMARY
+  OVERDUE_ALERT
+  PAYMENT_CONFIRMED
+}
+
+enum InAppNotificationStatus {
+  UNREAD
+  READ
+  DISMISSED
+}
+
+// ─────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bills              Bill[]
+  inAppNotifications InAppNotification[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────
+// BILL (template de conta)
+// ─────────────────────────────────────────
+
+model Bill {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  category    String
+
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("BRL")
+
+  recurrence         RecurrenceType @default(NONE)
+  customIntervalDays Int?
+  startDate          DateTime       @db.Date
+  endDate            DateTime?      @db.Date
+
+  barcodeNumber String?
+  pixKey        String?
+  pixQrCode     String?
+
+  paymentInstructions String?
+  notes               String?
+
+  notifyDaysBefore Int[]   @default([1])
+  notifyOnDueDate  Boolean @default(true)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  occurrences BillOccurrence[]
+  attachments Attachment[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@map("bills")
+}
+
+// ─────────────────────────────────────────
+// BILL OCCURRENCE (instância de vencimento)
+// ─────────────────────────────────────────
+
+model BillOccurrence {
+  id     String @id @default(cuid())
+  billId String
+  bill   Bill   @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  dueDate DateTime         @db.Date
+  amount  Decimal          @db.Decimal(10, 2)
+  status  OccurrenceStatus @default(PENDING)
+
+  paidAt        DateTime?
+  paidAmount    Decimal?  @db.Decimal(10, 2)
+  paymentMethod String?
+  paymentNotes  String?
+
+  barcodeNumber       String?
+  pixKey              String?
+  pixQrCode           String?
+  boletoUrl           String?
+  paymentInstructions String?
+
+  isManuallyCreated Boolean @default(false)
+  occurrenceIndex   Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attachments      Attachment[]
+  notificationLogs NotificationLog[]
+
+  @@index([billId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([dueDate, status])
+  @@map("bill_occurrences")
+}
+
+// ─────────────────────────────────────────
+// ATTACHMENT
+// ─────────────────────────────────────────
+
+model Attachment {
+  id String @id @default(cuid())
+
+  billId           String?
+  bill             Bill?           @relation(fields: [billId], references: [id], onDelete: Cascade)
+  billOccurrenceId String?
+  billOccurrence   BillOccurrence? @relation(fields: [billOccurrenceId], references: [id], onDelete: Cascade)
+
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  storageKey String
+  storageUrl String
+
+  createdAt DateTime @default(now())
+
+  @@index([billId])
+  @@index([billOccurrenceId])
+  @@map("attachments")
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATION LOG
+// ─────────────────────────────────────────
+
+model NotificationLog {
+  id               String          @id @default(cuid())
+  billOccurrenceId String?
+  billOccurrence   BillOccurrence? @relation(fields: [billOccurrenceId], references: [id], onDelete: SetNull)
+
+  channel   NotificationChannel
+  type      NotificationType
+  recipient String
+
+  sentAt       DateTime @default(now())
+  success      Boolean
+  errorMessage String?
+  metadata     Json?
+
+  idempotencyKey String @unique
+
+  @@index([billOccurrenceId])
+  @@index([type, sentAt])
+  @@map("notification_logs")
+}
+
+// ─────────────────────────────────────────
+// IN-APP NOTIFICATION (scaffold fase 2)
+// ─────────────────────────────────────────
+
+model InAppNotification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  status    InAppNotificationStatus @default(UNREAD)
+  title     String
+  body      String
+  actionUrl String?
+  metadata  Json?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@map("in_app_notifications")
+}
