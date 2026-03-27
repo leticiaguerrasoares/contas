@@ -6,7 +6,20 @@
       "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack --no-react-compiler --no-agents-md)",
       "Bash(npm install:*)",
       "Bash(npx prisma:*)",
-      "Bash(npx shadcn@latest init --defaults)"
+      "Bash(npx shadcn@latest init --defaults)",
+      "Bash(npx shadcn@latest add card badge separator dialog dropdown-menu select tabs tooltip popover label checkbox input textarea avatar scroll-area --no-confirm)",
+      "Bash(npx shadcn@latest add card badge separator dialog dropdown-menu select tabs tooltip popover label checkbox input textarea avatar scroll-area --overwrite)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -n \"from.*button\" src/app/\\\\\\(dashboard\\\\\\)/bills/[id]/page.tsx src/app/\\\\\\(dashboard\\\\\\)/occurrences/[id]/page.tsx src/app/\\\\\\(dashboard\\\\\\)/bills/page.tsx src/app/\\\\\\(dashboard\\\\\\)/bills/[id]/edit/page.tsx)",
+      "Bash(nc -zv aws-0-us-west-2.pooler.supabase.com 5432)",
+      "Bash(nc -zv aws-0-us-west-2.pooler.supabase.com 6543)",
+      "Bash(PGPASSWORD='Verdelimao6?' psql \"postgresql://postgres.sxoznkkwthnfjvksspym@aws-0-us-west-2.pooler.supabase.com:5432/postgres\" -c \"SELECT 1;\")",
+      "Bash(dig +short aws-0-us-west-2.pooler.supabase.com)",
+      "Bash(/Users/leticiaguerra/teste23.03/prisma/migrations/20260323_init/migration.sql:*)",
+      "Bash(xargs kill:*)",
+      "Bash(pkill -f 'next dev')"
     ]
   }
 }

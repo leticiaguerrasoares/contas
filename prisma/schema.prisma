@@ -18,6 +18,7 @@ enum RecurrenceType {
   MONTHLY
   YEARLY
   CUSTOM
+  BUSINESS_DAY
 }
 
 enum OccurrenceStatus {
@@ -44,6 +45,12 @@ enum InAppNotificationStatus {
   UNREAD
   READ
   DISMISSED
+}
+
+enum AttachmentType {
+  DOCUMENT
+  BOLETO
+  COMPROVANTE
 }
 
 // ─────────────────────────────────────────
@@ -163,6 +170,7 @@ model Attachment {
   mimeType   String
   storageKey String
   storageUrl String
+  type       AttachmentType @default(DOCUMENT)
 
   createdAt DateTime @default(now())
 

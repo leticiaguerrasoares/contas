@@ -1,0 +1,1 @@
+-- Baseline migration (applied manually via Supabase SQL Editor)
