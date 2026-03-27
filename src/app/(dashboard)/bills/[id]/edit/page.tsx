@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button-variants"
 import { BillForm } from "@/components/bills/bill-form"
 import { prisma } from "@/lib/prisma"
-import { cn } from "@/lib/utils"
+import { cn, serialize } from "@/lib/utils"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -35,7 +35,7 @@ export default async function EditBillPage({ params }: Props) {
         <p className="text-sm text-muted-foreground mt-0.5">{bill.title}</p>
       </div>
 
-      <BillForm bill={bill} mode="edit" />
+      <BillForm bill={serialize(bill)} mode="edit" />
     </div>
   )
 }
