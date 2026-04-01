@@ -7,12 +7,75 @@ export interface OccurrenceTemplate {
   occurrenceIndex: number
 }
 
+/** Algoritmo de Meeus/Jones/Butcher para calcular a Páscoa */
+function getEasterDate(year: number): Date {
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1 // 0-indexed
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+  return new Date(year, month, day)
+}
+
+function dateKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+const holidayCache = new Map<number, Set<string>>()
+
 /**
- * Retorna o N-ésimo dia útil (seg-sex) de um mês.
- * Se o mês tiver menos dias úteis que N, retorna o último dia útil do mês.
+ * Retorna os feriados do ano para o Estado do Rio de Janeiro.
+ * Inclui feriados nacionais + estaduais + Carnaval.
+ */
+function getHolidaysForYear(year: number): Set<string> {
+  if (holidayCache.has(year)) return holidayCache.get(year)!
+
+  const h = new Set<string>()
+  const add = (month: number, day: number) => h.add(dateKey(new Date(year, month - 1, day)))
+  const addDate = (d: Date) => h.add(dateKey(d))
+  const shift = (d: Date, days: number) => new Date(d.getTime() + days * 86_400_000)
+
+  // Feriados nacionais fixos
+  add(1, 1)   // Ano Novo
+  add(4, 21)  // Tiradentes
+  add(5, 1)   // Dia do Trabalho
+  add(9, 7)   // Independência do Brasil
+  add(10, 12) // Nossa Senhora Aparecida
+  add(11, 2)  // Finados
+  add(11, 15) // Proclamação da República
+  add(11, 20) // Consciência Negra (Lei 14.759/2023)
+  add(12, 25) // Natal
+
+  // Feriados estaduais — Estado do Rio de Janeiro
+  add(4, 23)  // Dia de São Jorge
+
+  // Feriados móveis baseados na Páscoa
+  const easter = getEasterDate(year)
+  addDate(shift(easter, -48)) // Segunda de Carnaval
+  addDate(shift(easter, -47)) // Terça de Carnaval
+  addDate(shift(easter, -2))  // Sexta-feira Santa
+  addDate(shift(easter, 60))  // Corpus Christi
+
+  holidayCache.set(year, h)
+  return h
+}
+
+/**
+ * Retorna o N-ésimo dia útil do mês considerando finais de semana e
+ * feriados nacionais + estaduais do Rio de Janeiro.
+ * Se o mês tiver menos dias úteis que N, retorna o último dia útil.
  */
 function getNthBusinessDay(year: number, month: number, n: number): Date {
-  // month é 0-indexed (Jan=0)
+  const holidays = getHolidaysForYear(year)
   let count = 0
   let lastBusinessDay: Date | null = null
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -20,13 +83,12 @@ function getNthBusinessDay(year: number, month: number, n: number): Date {
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day)
     const dow = date.getDay() // 0=Dom, 6=Sab
-    if (dow !== 0 && dow !== 6) {
+    if (dow !== 0 && dow !== 6 && !holidays.has(dateKey(date))) {
       count++
       lastBusinessDay = date
       if (count === n) return startOfDay(date)
     }
   }
-  // N maior que dias úteis do mês → retorna o último dia útil
   return startOfDay(lastBusinessDay ?? new Date(year, month, 1))
 }
 
