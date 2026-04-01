@@ -19,7 +19,11 @@
       "Bash(dig +short aws-0-us-west-2.pooler.supabase.com)",
       "Bash(/Users/leticiaguerra/teste23.03/prisma/migrations/20260323_init/migration.sql:*)",
       "Bash(xargs kill:*)",
-      "Bash(pkill -f 'next dev')"
+      "Bash(pkill -f 'next dev')",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
