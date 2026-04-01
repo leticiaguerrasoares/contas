@@ -174,7 +174,7 @@ export default async function BillDetailPage({ params }: Props) {
             {pendingOccurrences.map((occ: any) => (
               <OccurrenceRow
                 key={occ.id}
-                occurrence={{ ...occ, bill }}
+                occurrence={{ ...occ, bill: sBill }}
                 showBillLink={false}
               />
             ))}
@@ -192,7 +192,7 @@ export default async function BillDetailPage({ params }: Props) {
             {paidOccurrences.map((occ: any) => (
               <OccurrenceRow
                 key={occ.id}
-                occurrence={{ ...occ, bill }}
+                occurrence={{ ...occ, bill: sBill }}
                 showBillLink={false}
               />
             ))}
