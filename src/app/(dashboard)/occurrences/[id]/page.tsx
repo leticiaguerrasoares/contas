@@ -75,7 +75,7 @@ export default async function OccurrenceDetailPage({ params }: Props) {
         </div>
 
         {occurrence_.status !== "PAID" && (
-          <PayOccurrenceButton occurrence={occurrence} />
+          <PayOccurrenceButton occurrence={occurrence_} />
         )}
       </div>
 
