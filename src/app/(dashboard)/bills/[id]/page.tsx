@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CopyButton } from "@/components/shared/copy-button"
 import { DocumentSection } from "@/components/shared/attachment-manager"
+import { RegenerateOccurrencesButton } from "@/components/bills/regenerate-occurrences-button"
 import { prisma } from "@/lib/prisma"
 import { BILL_CATEGORIES, RECURRENCE_LABELS } from "@/types"
 import { cn, serialize } from "@/lib/utils"
@@ -84,10 +85,15 @@ export default async function BillDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-        <Link href={`/bills/${sBill.id}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-          <Pencil className="w-3.5 h-3.5 mr-1.5" />
-          Editar
-        </Link>
+        <div className="flex items-center gap-2">
+          {sBill.recurrence === "BUSINESS_DAY" && (
+            <RegenerateOccurrencesButton billId={sBill.id} />
+          )}
+          <Link href={`/bills/${sBill.id}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <Pencil className="w-3.5 h-3.5 mr-1.5" />
+            Editar
+          </Link>
+        </div>
       </div>
 
       {(sBill.barcodeNumber || sBill.pixKey || sBill.pixQrCode || sBill.paymentInstructions) && (
