@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CopyButton } from "@/components/shared/copy-button"
 import { DocumentSection } from "@/components/shared/attachment-manager"
-import { RegenerateOccurrencesButton } from "@/components/bills/regenerate-occurrences-button"
+import { ensureCorrectOccurrences } from "@/lib/occurrences/regenerate"
 import { prisma } from "@/lib/prisma"
 import { BILL_CATEGORIES, RECURRENCE_LABELS } from "@/types"
 import { cn, serialize } from "@/lib/utils"
@@ -42,6 +42,25 @@ export default async function BillDetailPage({ params }: Props) {
   })
 
   if (!bill) notFound()
+
+  // Auto-fix pending occurrences if dates are wrong (e.g. after holiday calendar update)
+  if (bill.recurrence === "BUSINESS_DAY") {
+    const regenerated = await ensureCorrectOccurrences(bill)
+    if (regenerated) {
+      // Re-fetch with corrected occurrences
+      const refreshed = await prisma.bill.findUnique({
+        where: { id },
+        include: {
+          occurrences: {
+            orderBy: { dueDate: "desc" },
+            include: { attachments: true, notificationLogs: true },
+          },
+          attachments: true,
+        },
+      })
+      if (refreshed) Object.assign(bill, refreshed)
+    }
+  }
 
   const sBill = serialize(bill)
   const category = BILL_CATEGORIES.find((c) => c.value === sBill.category)
@@ -85,15 +104,10 @@ export default async function BillDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {sBill.recurrence === "BUSINESS_DAY" && (
-            <RegenerateOccurrencesButton billId={sBill.id} />
-          )}
-          <Link href={`/bills/${sBill.id}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            <Pencil className="w-3.5 h-3.5 mr-1.5" />
-            Editar
-          </Link>
-        </div>
+        <Link href={`/bills/${sBill.id}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+          Editar
+        </Link>
       </div>
 
       {(sBill.barcodeNumber || sBill.pixKey || sBill.pixQrCode || sBill.paymentInstructions) && (

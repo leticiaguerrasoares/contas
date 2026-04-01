@@ -106,7 +106,7 @@ export function RecurrenceSelector({
             })}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            💡 Finais de semana são pulados automaticamente. Feriados não são considerados.
+            💡 Finais de semana e feriados do Estado do Rio de Janeiro são pulados automaticamente.
           </p>
         </div>
       )}
